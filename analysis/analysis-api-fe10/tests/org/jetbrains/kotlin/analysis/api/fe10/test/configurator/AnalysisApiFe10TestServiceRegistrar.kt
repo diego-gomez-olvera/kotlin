@@ -15,11 +15,13 @@ import org.jetbrains.kotlin.analysis.api.descriptors.CliFe10AnalysisFacade
 import org.jetbrains.kotlin.analysis.api.descriptors.Fe10AnalysisFacade
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisHandlerExtension
 import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSessionProvider
+import org.jetbrains.kotlin.analysis.api.descriptors.references.ReadWriteAccessCheckerDescriptorsImpl
 import org.jetbrains.kotlin.references.fe10.base.KtFe10KotlinReferenceProviderContributor
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestServiceRegistrar
 import org.jetbrains.kotlin.cli.common.CliModuleVisibilityManagerImpl
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.idea.references.KotlinReferenceProviderContributor
+import org.jetbrains.kotlin.idea.references.ReadWriteAccessChecker
 import org.jetbrains.kotlin.light.classes.symbol.caches.SymbolLightClassFacadeCache
 import org.jetbrains.kotlin.load.kotlin.ModuleVisibilityManager
 import org.jetbrains.kotlin.resolve.extensions.AnalysisHandlerExtension
@@ -39,6 +41,7 @@ object AnalysisApiFe10TestServiceRegistrar : AnalysisApiTestServiceRegistrar() {
             registerService(CoreJavaFileManager::class.java, project.getService(JavaFileManager::class.java) as CoreJavaFileManager)
 
             registerService(SymbolLightClassFacadeCache::class.java)
+            registerService(ReadWriteAccessChecker::class.java, ReadWriteAccessCheckerDescriptorsImpl(project))
         }
         AnalysisHandlerExtension.registerExtension(project, KtFe10AnalysisHandlerExtension())
         KotlinCoreEnvironment.registerKotlinLightClassSupport(project)
