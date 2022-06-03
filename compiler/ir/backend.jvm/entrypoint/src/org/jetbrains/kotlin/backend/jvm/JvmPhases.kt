@@ -11,10 +11,13 @@ import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.common.phaser.performByIrFile
 import org.jetbrains.kotlin.backend.common.phaser.then
 import org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen
+import org.jetbrains.kotlin.ir.PsiIrFileEntry
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private fun codegenPhase(generateMultifileFacade: Boolean): NamedCompilerPhase<JvmBackendContext, IrModuleFragment> {
     val suffix = if (generateMultifileFacade) "MultifileFacades" else "Regular"
@@ -35,6 +38,11 @@ private fun codegenPhase(generateMultifileFacade: Boolean): NamedCompilerPhase<J
 
 private class FileCodegen(private val context: JvmBackendContext, private val generateMultifileFacade: Boolean) : FileLoweringPass {
     override fun lower(irFile: IrFile) {
+        if (irFile.fileEntry.safeAs<PsiIrFileEntry>()?.psiFile?.safeAs<KtFile>()
+                ?.let { !context.state.generateDeclaredClassFilter.shouldGeneratePackagePart(it) } == true
+        ) {
+            return
+        }
         val isMultifileFacade = irFile.fileEntry is MultifileFacadeFileEntry
         if (isMultifileFacade == generateMultifileFacade) {
             for (loweredClass in irFile.declarations) {
