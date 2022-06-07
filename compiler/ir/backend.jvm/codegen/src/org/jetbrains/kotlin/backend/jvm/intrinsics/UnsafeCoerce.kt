@@ -5,9 +5,13 @@
 
 package org.jetbrains.kotlin.backend.jvm.intrinsics
 
-import org.jetbrains.kotlin.backend.jvm.codegen.*
+import org.jetbrains.kotlin.backend.jvm.codegen.BlockInfo
+import org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen
+import org.jetbrains.kotlin.backend.jvm.codegen.PromisedValue
+import org.jetbrains.kotlin.backend.jvm.codegen.materializeAt
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.org.objectweb.asm.Type
 
 /**
@@ -23,7 +27,7 @@ object UnsafeCoerce : IntrinsicMethod() {
         val to = expression.getTypeArgument(1)!!
         val fromType = codegen.typeMapper.mapType(from)
         val toType = codegen.typeMapper.mapType(to)
-        require(fromType == toType) {
+        require(fromType == AsmTypes.VOID_WRAPPER_TYPE || fromType == toType) {
             "Inline class types should have the same representation: $fromType != $toType"
         }
         val arg = expression.getValueArgument(0)!!
