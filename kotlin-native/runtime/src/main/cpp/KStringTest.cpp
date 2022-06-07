@@ -38,16 +38,6 @@ TEST(KStringTest, mallocString_misc) {
     checkContentsEquality(result, expected);
 }
 
-TEST(KStringTest, mallocString_non_ascii) {
-    const char* non_ascii = "£oö";
-    EXPECT_THAT(strlen(non_ascii), 5);
-    const char16_t* expected = u"£oö";
-    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 3);
-
-    auto result = mallocString(non_ascii)->array();
-    checkContentsEquality(result, expected);
-}
-
 TEST(KStringTest, mallocString_empty) {
     const char* empty = "";
     EXPECT_THAT(strlen(empty), 0);
