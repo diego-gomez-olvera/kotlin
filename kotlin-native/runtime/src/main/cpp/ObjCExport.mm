@@ -16,7 +16,6 @@
 
 #import "Types.h"
 #import "Memory.h"
-#include "Natives.h"
 #include "ObjCInterop.h"
 #include "KString.h"
 
@@ -787,8 +786,8 @@ static const TypeInfo* createTypeInfo(
     }
   }
 
-  result->packageName_ = mallocString(""); // Obj-C has no packages. Hence, empty string must be set here for KClassImpl.toString()
-  result->relativeName_ = mallocString(className);
+  result->packageName_ = CreatePermanentStringFromCString(""); // Obj-C has no packages. Hence, empty string must be set here for KClassImpl.toString()
+  result->relativeName_ = CreatePermanentStringFromCString(className);
   result->writableInfo_ = (WritableTypeInfo*)std_support::calloc(1, sizeof(WritableTypeInfo));
 
   for (size_t i = 0; i < vtable.size(); ++i) result->vtable()[i] = vtable[i];

@@ -4,56 +4,75 @@
  */
 
 #include "KString.h"
+#include "Natives.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-void checkContentsEquality(ArrayHeader* arrayHeader, const char16_t* expected) {
-    EXPECT_THAT(arrayHeader->count_, std::char_traits<char16_t>::length(expected));
-    const size_t charArrayHeaderSize = 16;  // alignUp(sizeof(ArrayHeader), alignof(char16_t))
-    const char16_t* actual = (char16_t*)((char*)arrayHeader + charArrayHeaderSize);
-    for (size_t i=0; i<arrayHeader->count_; i++) {
-        EXPECT_THAT(actual[i], expected[i]);
+void checkContentsEquality(ArrayHeader* actual, const char16_t* expected) {
+    EXPECT_THAT(actual->count_, std::char_traits<char16_t>::length(expected));
+    for (size_t i=0; i<actual->count_; i++) {
+        EXPECT_THAT(*CharArrayAddressOfElementAt(actual, i), expected[i]);
     }
-    EXPECT_THAT(arrayHeader->obj()->permanent(), true);
+    EXPECT_THAT(actual->obj()->permanent(), true);
 }
 
-TEST(KStringTest, mallocString_ascii) {
+TEST(KStringTest, CreatePermanentStringFromCString_ascii) {
     const char* ascii = "Ascii";
     EXPECT_THAT(strlen(ascii), 5);
     const char16_t* expected = u"Ascii";
     EXPECT_THAT(std::char_traits<char16_t>::length(expected), 5);
 
-    auto result = mallocString(ascii)->array();
-    checkContentsEquality(result, expected);
+    auto actual = CreatePermanentStringFromCString(ascii)->array();
+    checkContentsEquality(actual, expected);
 }
 
-TEST(KStringTest, mallocString_misc) {
+TEST(KStringTest, CreatePermanentStringFromCString_misc) {
     const char* non_ascii = "-£öü²ソニーΣℜ∫♣‰€";
     EXPECT_THAT(strlen(non_ascii), 35);
     const char16_t* expected = u"-£öü²ソニーΣℜ∫♣‰€";
     EXPECT_THAT(std::char_traits<char16_t>::length(expected), 14);
 
-    auto result = mallocString(non_ascii)->array();
-    checkContentsEquality(result, expected);
+    auto actual = CreatePermanentStringFromCString(non_ascii)->array();
+    checkContentsEquality(actual, expected);
 }
 
-TEST(KStringTest, mallocString_surrogates) {
+TEST(KStringTest, CreatePermanentStringFromCString_surrogates) {
     const char* surrogates = "😃𓄀🌀🐀𝜀";
     EXPECT_THAT(strlen(surrogates), 20);
     const char16_t* expected = u"😃𓄀🌀🐀𝜀";
     EXPECT_THAT(std::char_traits<char16_t>::length(expected), 10);
 
-    auto result = mallocString(surrogates)->array();
-    checkContentsEquality(result, expected);
+    auto actual = CreatePermanentStringFromCString(surrogates)->array();
+    checkContentsEquality(actual, expected);
 }
 
-TEST(KStringTest, mallocString_empty) {
+TEST(KStringTest, CreatePermanentStringFromCString_empty) {
     const char* empty = "";
     EXPECT_THAT(strlen(empty), 0);
     const char16_t* expected = u"";
     EXPECT_THAT(std::char_traits<char16_t>::length(expected), 0);
 
-    auto result = mallocString(empty)->array();
-    checkContentsEquality(result, expected);
+    auto actual = CreatePermanentStringFromCString(empty)->array();
+    checkContentsEquality(actual, expected);
+}
+
+TEST(KStringTest, CreatePermanentStringFromCString_impossible) {
+    const char* impossible = "\xff";
+    EXPECT_THAT(strlen(impossible), 1);
+    const char16_t* expected = u"\xfffd";
+    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 1);
+
+    auto actual = CreatePermanentStringFromCString(impossible)->array();
+    checkContentsEquality(actual, expected);
+}
+
+TEST(KStringTest, CreatePermanentStringFromCString_overlong) {
+    const char* overlong = "\xc0\xaf";
+    EXPECT_THAT(strlen(overlong), 2);
+    const char16_t* expected = u"\xfffd\xfffd";
+    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 2);
+
+    auto actual = CreatePermanentStringFromCString(overlong)->array();
+    checkContentsEquality(actual, expected);
 }
