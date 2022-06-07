@@ -786,7 +786,7 @@ static const TypeInfo* createTypeInfo(
     }
   }
 
-  result->packageName_ = CreatePermanentStringFromCString(""); // Obj-C has no packages. Hence, empty string must be set here for KClassImpl.toString()
+  result->packageName_ = nullptr;
   result->relativeName_ = CreatePermanentStringFromCString(className);
   result->writableInfo_ = (WritableTypeInfo*)std_support::calloc(1, sizeof(WritableTypeInfo));
 
