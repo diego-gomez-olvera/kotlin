@@ -135,16 +135,15 @@ void DisposeCString(char* cstring) {
 }
 
 ObjHeader* mallocString(const char* cstring) {
-    size_t count = strlen(cstring);
+    const char* end = cstring + strlen(cstring);
+    size_t count = utf8::utf16_length(cstring, end);
     size_t headerSize = alignUp(sizeof(ArrayHeader), alignof(char16_t));
     size_t arraySize = headerSize + count * sizeof(char16_t);
 
     ArrayHeader* header = (ArrayHeader*)malloc(arraySize);
     header->obj()->typeInfoOrMeta_ = setPointerBits((TypeInfo *)theStringTypeInfo, OBJECT_TAG_PERMANENT_CONTAINER);
-    RuntimeAssert(header->obj()->permanent(), "Must be permanent");
-
     header->count_ = count;
-    utf8::utf8to16(cstring, cstring + count, (char16_t*)((char*)header + headerSize));
+    utf8::utf8to16(cstring, end, (char16_t*)((char*)header + headerSize));
 
     return header->obj();
 }
