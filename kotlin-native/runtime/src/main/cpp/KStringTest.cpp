@@ -19,10 +19,10 @@ void checkContentsEquality(ArrayHeader* arrayHeader, const char16_t* expected) {
 }
 
 TEST(KStringTest, mallocString_ascii) {
-    const char* ascii = "foo";
-    EXPECT_THAT(strlen(ascii), 3);
-    const char16_t* expected = u"foo";
-    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 3);
+    const char* ascii = "Ascii";
+    EXPECT_THAT(strlen(ascii), 5);
+    const char16_t* expected = u"Ascii";
+    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 5);
 
     auto result = mallocString(ascii)->array();
     checkContentsEquality(result, expected);
@@ -35,6 +35,16 @@ TEST(KStringTest, mallocString_misc) {
     EXPECT_THAT(std::char_traits<char16_t>::length(expected), 14);
 
     auto result = mallocString(non_ascii)->array();
+    checkContentsEquality(result, expected);
+}
+
+TEST(KStringTest, mallocString_surrogates) {
+    const char* surrogates = "😃𓄀🌀🐀𝜀";
+    EXPECT_THAT(strlen(surrogates), 20);
+    const char16_t* expected = u"😃𓄀🌀🐀𝜀";
+    EXPECT_THAT(std::char_traits<char16_t>::length(expected), 10);
+
+    auto result = mallocString(surrogates)->array();
     checkContentsEquality(result, expected);
 }
 
