@@ -1,5 +1,6 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.pill.PillExtension
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("gradle-plugin-common-configuration")
@@ -54,18 +55,18 @@ dependencies {
     commonCompileOnly(intellijCore())
     commonCompileOnly(commonDependency("org.jetbrains.teamcity:serviceMessages"))
     commonCompileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.9")
+    commonCompileOnly(commonDependency("com.google.code.gson:gson"))
+    commonCompileOnly(commonDependency("com.google.guava:guava"))
+    commonCompileOnly("de.undercouch:gradle-download-task:4.1.1")
+    commonCompileOnly("com.github.gundy:semver4j:0.16.4:nodeps") {
+        exclude(group = "*")
+    }
+    commonCompileOnly(project(":kotlin-tooling-metadata"))
 
     commonImplementation(project(":kotlin-gradle-plugin-idea"))
     commonImplementation(project(":kotlin-util-klib"))
     commonImplementation(project(":native:kotlin-klib-commonizer-api"))
-    commonImplementation(project(":kotlin-tooling-metadata"))
     commonImplementation(project(":kotlin-project-model"))
-    commonImplementation(commonDependency("com.google.code.gson:gson"))
-    commonImplementation(commonDependency("com.google.guava:guava"))
-    commonImplementation("de.undercouch:gradle-download-task:4.1.1")
-    commonImplementation("com.github.gundy:semver4j:0.16.4:nodeps") {
-        exclude(group = "*")
-    }
 
     commonRuntimeOnly(project(":kotlin-compiler-embeddable"))
     commonRuntimeOnly(project(":kotlin-annotation-processing-gradle"))
@@ -80,6 +81,11 @@ dependencies {
     embedded(commonDependency("com.google.code.gson:gson")) { isTransitive = false }
     embedded(commonDependency("com.google.guava:guava")) { isTransitive = false }
     embedded(commonDependency("org.jetbrains.teamcity:serviceMessages")) { isTransitive = false }
+    embedded(project(":kotlin-tooling-metadata")) { isTransitive = false }
+    embedded("de.undercouch:gradle-download-task:4.1.1")
+    embedded("com.github.gundy:semver4j:0.16.4:nodeps") {
+        exclude(group = "*")
+    }
 
     if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
         "functionalTestImplementation"("com.android.tools.build:gradle:4.0.1") {
@@ -134,6 +140,11 @@ tasks {
     }
     register("dokka") {
         dependsOn(named("dokkaJavadoc"))
+    }
+
+    withType<ShadowJar>().configureEach {
+        relocate("com.github.gundy", "$kotlinEmbeddableRootPackage.com.github.gundy")
+        relocate("de.undercouch.gradle.tasks.download", "$kotlinEmbeddableRootPackage.de.undercouch.gradle.tasks.download")
     }
 }
 
